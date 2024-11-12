@@ -192,9 +192,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const savedVolume = localStorage.getItem('audioVolume');
     volumeControl.value = savedVolume !== null ? savedVolume : 0.5; // Default to 0.5 if no saved volume
 
-    // Add the volume slider to the page
+    // Create a play/pause button with SVG icons
+    const playPauseButton = document.createElement('button');
+    playPauseButton.id = 'play-pause-button';
+    playPauseButton.style.display = 'none'; // Initially hide the button
+    playPauseButton.innerHTML = `
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#000000" d="M6 19h4V5H6v14zM14 5v14h4V5h-4z"/>
+        </svg>
+    `; // Default to pause icon
+
+    // Add the volume slider and play/pause button to the page
     const searchBar = document.getElementById('search');
     searchBar.parentNode.insertBefore(volumeControl, searchBar.nextSibling);
+    searchBar.parentNode.insertBefore(playPauseButton, volumeControl.nextSibling);
 
     volumeControl.addEventListener('input', (event) => {
         const audio = document.getElementById('audio-player');
@@ -204,32 +215,52 @@ document.addEventListener('DOMContentLoaded', () => {
         // Save the current volume level to localStorage
         localStorage.setItem('audioVolume', event.target.value);
     });
+
+    playPauseButton.addEventListener('click', () => {
+        const audio = document.getElementById('audio-player');
+        if (audio) {
+            if (audio.paused) {
+                audio.play();
+                playPauseButton.innerHTML = `
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fill="#000000" d="M6 19h4V5H6v14zM14 5v14h4V5h-4z"/>
+                    </svg>
+                `; // Pause icon
+            } else {
+                audio.pause();
+                playPauseButton.innerHTML = `
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fill="#000000" d="M8 5v14l11-7L8 5z"/>
+                    </svg>
+                `; // Play icon
+            }
+        }
+    });
 });
 
 function playStation(url, shouldHighlight = true) {
     // Remove existing audio element if it exists
     let existingAudio = document.getElementById('audio-player');
     if (existingAudio) {
-        // Stop the audio and clear its source
         existingAudio.pause();
-        existingAudio.src = ''; // Clear the source to release the media
-        existingAudio.load(); // Reset the audio element
-        existingAudio.parentNode.removeChild(existingAudio); // Remove the element from the DOM
-        removeHighlightFromPlayingStation(); // Remove highlight when stopped
+        existingAudio.src = '';
+        existingAudio.load();
+        existingAudio.parentNode.removeChild(existingAudio);
+        removeHighlightFromPlayingStation();
     }
 
     // Create a new audio element
     const audio = document.createElement('audio');
     audio.id = 'audio-player';
-    audio.src = url + '?nocache=' + new Date().getTime(); // Add a cache-busting query parameter
+    audio.src = url + '?nocache=' + new Date().getTime();
     audio.autoplay = true;
-    audio.controls = true; // Add controls to make the player visible
+    audio.controls = true;
 
-    // Style the audio element to ensure it is visible
+    // Style the audio element
     audio.style.position = 'fixed';
     audio.style.bottom = '10px';
     audio.style.left = '10px';
-    audio.style.zIndex = '1000'; // Ensure it is on top of other elements
+    audio.style.zIndex = '1000';
 
     // Set the audio volume to the current slider value
     const volumeControl = document.getElementById('volume-control');
@@ -239,12 +270,22 @@ function playStation(url, shouldHighlight = true) {
     const searchBar = document.getElementById('search');
     searchBar.parentNode.insertBefore(audio, searchBar.nextSibling);
 
+    // Show the play/pause button when a station is playing
+    const playPauseButton = document.getElementById('play-pause-button');
+    playPauseButton.style.display = 'inline-block';
+
+    // Fetch and display the current song title
+    fetchCurrentSong(url).then(songTitle => {
+        const currentSongElement = document.getElementById('current-song');
+        currentSongElement.textContent = `Current Song: ${songTitle}`;
+        currentSongElement.style.display = 'block';
+    });
+
     // Highlight the station if required
     if (shouldHighlight) {
         highlightPlayingStation(url);
     }
 }
-
 function highlightPlayingStation(url) {
     // Remove highlight from any previously playing station
     removeHighlightFromPlayingStation();
@@ -328,9 +369,9 @@ function displayFavoriteStations() {
         stationList = document.createElement('ul');
         stationList.id = 'favorite-stations';
 
-        // Insert the station list after the volume control and search bar
-        const searchBar = document.getElementById('search');
-        searchBar.parentNode.insertBefore(stationList, searchBar.nextSibling.nextSibling);
+        // Insert the station list after the play/pause button
+        const playPauseButton = document.getElementById('play-pause-button');
+        playPauseButton.parentNode.insertBefore(stationList, playPauseButton.nextSibling);
     }
 
     stationList.innerHTML = ''; // Clear previous list
@@ -372,11 +413,70 @@ function displayFavoriteStations() {
         stationList.parentNode.insertBefore(separator, stationList.nextSibling);
     }
 }
-
 function highlightFavouritePlayingStation(stationElement) {
     // Remove highlight from any previously playing station
     //removeHighlightFromPlayingStation();
 
     // Add the 'playing' class to the clicked element
     stationElement.classList.add('playing');
+}
+
+
+async function fetchCurrentSong(url) {
+    console.log(`Fetching current song from URL: ${url}`);
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Icy-MetaData': '1'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Network response was not ok: ${response.statusText}`);
+        }
+
+        const reader = response.body.getReader();
+        const metaInt = parseInt(response.headers.get('icy-metaint'), 10);
+
+        if (isNaN(metaInt)) {
+            console.warn('Metadata not available');
+            return 'Unknown Song';
+        }
+
+        let bytesRead = 0;
+        let audioData = new Uint8Array(metaInt);
+        let result;
+
+        while (bytesRead < metaInt) {
+            result = await reader.read();
+            if (result.done) break;
+            audioData.set(result.value, bytesRead);
+            bytesRead += result.value.length;
+        }
+
+        // Read the metadata
+        result = await reader.read();
+        if (result.done || result.value.length === 0) {
+            return 'Unknown Song';
+        }
+
+        const metaDataLength = result.value[0] * 16;
+        if (metaDataLength > 0) {
+            const metaDataBuffer = result.value.slice(1, metaDataLength + 1);
+            const metaData = new TextDecoder().decode(metaDataBuffer);
+
+            // Look for the <DB_DALET_TITLE_NAME> tag
+            const titleStart = metaData.indexOf('<DB_DALET_TITLE_NAME>') + '<DB_DALET_TITLE_NAME>'.length;
+            const titleEnd = metaData.indexOf('</DB_DALET_TITLE_NAME>', titleStart);
+
+            if (titleStart > '<DB_DALET_TITLE_NAME>'.length && titleEnd > titleStart) {
+                return metaData.substring(titleStart, titleEnd);
+            }
+        }
+    } catch (e) {
+        console.error('Error fetching song metadata:', e);
+    }
+
+    return 'Unknown Song';
 }

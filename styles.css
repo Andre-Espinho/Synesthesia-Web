@@ -64,3 +64,21 @@ audio {
 #volume-control {
     margin-left: 10px;
 }
+
+#play-pause-button {
+    width: 40px;
+    height: 40px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    border: none;
+    cursor: pointer;
+    outline: none;
+}
+
+#play-pause-button.play {
+    background-image: url('path/to/play-icon.png');
+}
+
+#play-pause-button.pause {
+    background-image: url('path/to/pause-icon.png');
+}
