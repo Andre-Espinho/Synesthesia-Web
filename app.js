@@ -421,7 +421,7 @@ function highlightFavouritePlayingStation(stationElement) {
     stationElement.classList.add('playing');
 }
 
-
+// fix cors eventually
 async function fetchCurrentSong(url) {
     console.log(`Fetching current song from URL: ${url}`);
     try {
@@ -436,6 +436,13 @@ async function fetchCurrentSong(url) {
             throw new Error(`Network response was not ok: ${response.statusText}`);
         }
 
+        // Attempt to read the song title from the headers
+        const icyTitle = response.headers.get('icy-title');
+        if (icyTitle) {
+            return icyTitle;
+        }
+
+        // If the title is not in the headers, fall back to reading the body
         const reader = response.body.getReader();
         const metaInt = parseInt(response.headers.get('icy-metaint'), 10);
 
