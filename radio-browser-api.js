@@ -7,14 +7,24 @@ function getRadiobrowserBaseUrls() {
                 const items = JSON.parse(request.responseText).map(x => "https://" + x.name);
                 resolve(items);
             } else {
-                reject(request.statusText);
+                fallbackServers(resolve);
             }
         };
         request.onerror = function() {
-            reject('Network error');
+            fallbackServers(resolve);
         };
         request.send();
     });
+}
+
+function fallbackServers(resolve) {
+    const fallback = [
+        "https://nl1.api.radio-browser.info",
+        "https://de1.api.radio-browser.info",
+        "https://at1.api.radio-browser.info"
+    ];
+    console.warn('Using fallback servers:', fallback);
+    resolve(fallback);
 }
 
 function downloadUri(uri, param) {
