@@ -114,6 +114,10 @@ function showRadioStations(countryCode) {
     // Append the back button to the body
     document.body.appendChild(backButton);
 
+    // Use the existing search bar
+    const searchBar = document.getElementById('search');
+    searchBar.placeholder = 'Search stations...';
+
     const stationsList = document.createElement('ul');
     stationsList.id = 'stations-list';
 
@@ -127,6 +131,15 @@ function showRadioStations(countryCode) {
     downloadRadiobrowserStationsByCountry(countryCode)
         .then(stations => {
             renderStations(stations);
+
+            // Add search functionality to the existing search bar
+            searchBar.addEventListener('input', () => {
+                const query = searchBar.value.toLowerCase();
+                const filteredStations = stations.filter(station =>
+                    station.name.toLowerCase().includes(query)
+                );
+                renderStations(filteredStations);
+            });
         })
         .catch(error => {
             const favoriteStations = getCookie('favoriteStations') || [];
@@ -255,6 +268,7 @@ function playStation(url, shouldHighlight = true) {
     audio.src = url + '?nocache=' + new Date().getTime();
     audio.autoplay = true;
     audio.controls = true;
+    audio.crossOrigin = 'anonymous'; // Add crossorigin attribute
 
     // Style the audio element
     audio.style.position = 'fixed';
@@ -286,6 +300,7 @@ function playStation(url, shouldHighlight = true) {
         highlightPlayingStation(url);
     }
 }
+
 function highlightPlayingStation(url) {
     // Remove highlight from any previously playing station
     removeHighlightFromPlayingStation();
@@ -421,14 +436,17 @@ function highlightFavouritePlayingStation(stationElement) {
     stationElement.classList.add('playing');
 }
 
-// fix cors eventually
 async function fetchCurrentSong(url) {
     console.log(`Fetching current song from URL: ${url}`);
     try {
-        const response = await fetch(url, {
-            method: 'GET',
+        // Use the CORS proxy to fetch the song metadata
+        const proxyUrl = `https://synesthesia-cors-proxy.andre-espinho-work.workers.dev/?url=${encodeURIComponent(url)}`;
+        
+        const response = await fetch(proxyUrl, {
+            method: 'HEAD',
             headers: {
-                'Icy-MetaData': '1'
+                'Icy-MetaData': '1',
+                'Access-Control-Expose-Headers': 'Icy-MetaInt'
             }
         });
 
@@ -436,13 +454,11 @@ async function fetchCurrentSong(url) {
             throw new Error(`Network response was not ok: ${response.statusText}`);
         }
 
-        // Attempt to read the song title from the headers
         const icyTitle = response.headers.get('icy-title');
         if (icyTitle) {
             return icyTitle;
         }
 
-        // If the title is not in the headers, fall back to reading the body
         const reader = response.body.getReader();
         const metaInt = parseInt(response.headers.get('icy-metaint'), 10);
 
@@ -462,7 +478,6 @@ async function fetchCurrentSong(url) {
             bytesRead += result.value.length;
         }
 
-        // Read the metadata
         result = await reader.read();
         if (result.done || result.value.length === 0) {
             return 'Unknown Song';
@@ -473,7 +488,6 @@ async function fetchCurrentSong(url) {
             const metaDataBuffer = result.value.slice(1, metaDataLength + 1);
             const metaData = new TextDecoder().decode(metaDataBuffer);
 
-            // Look for the <DB_DALET_TITLE_NAME> tag
             const titleStart = metaData.indexOf('<DB_DALET_TITLE_NAME>') + '<DB_DALET_TITLE_NAME>'.length;
             const titleEnd = metaData.indexOf('</DB_DALET_TITLE_NAME>', titleStart);
 
