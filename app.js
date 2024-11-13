@@ -265,24 +265,31 @@ function playStation(url, shouldHighlight = true) {
     // Create a new audio element
     const audio = document.createElement('audio');
     audio.id = 'audio-player';
-    audio.src = url + '?nocache=' + new Date().getTime();
-    audio.autoplay = true;
     audio.controls = true;
-    audio.crossOrigin = 'anonymous'; // Add crossorigin attribute
-
-    // Style the audio element
     audio.style.position = 'fixed';
     audio.style.bottom = '10px';
     audio.style.left = '10px';
     audio.style.zIndex = '1000';
 
-    // Set the audio volume to the current slider value
-    const volumeControl = document.getElementById('volume-control');
-    audio.volume = volumeControl.value;
-
     // Insert the new audio element after the search bar
     const searchBar = document.getElementById('search');
     searchBar.parentNode.insertBefore(audio, searchBar.nextSibling);
+
+    // Check if Hls.js is supported
+    if (Hls.isSupported()) {
+        const hls = new Hls();
+        hls.loadSource(url);
+        hls.attachMedia(audio);
+        hls.on(Hls.Events.MANIFEST_PARSED, function () {
+            audio.play();
+        });
+    } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
+        // For browsers that support HLS natively
+        audio.src = url;
+        audio.play();
+    } else {
+        console.error('HLS is not supported in this browser.');
+    }
 
     // Show the play/pause button when a station is playing
     const playPauseButton = document.getElementById('play-pause-button');
@@ -300,7 +307,6 @@ function playStation(url, shouldHighlight = true) {
         highlightPlayingStation(url);
     }
 }
-
 function highlightPlayingStation(url) {
     // Remove highlight from any previously playing station
     removeHighlightFromPlayingStation();
