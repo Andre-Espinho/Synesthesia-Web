@@ -261,6 +261,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+let fetchSongInterval; // Declare a variable to store the interval ID
+
 function playStation(url, shouldHighlight = true) {
     // Remove existing audio element if it exists
     let existingAudio = document.getElementById('audio-player');
@@ -270,6 +272,7 @@ function playStation(url, shouldHighlight = true) {
         existingAudio.load();
         existingAudio.parentNode.removeChild(existingAudio);
         removeHighlightFromPlayingStation();
+        clearInterval(fetchSongInterval); // Clear the interval if it exists
     }
 
     // Create a new audio element
@@ -328,6 +331,22 @@ function playStation(url, shouldHighlight = true) {
                 <path fill="#000000" d="M6 19h4V5H6v14zM14 5v14h4V5h-4z"/>
             </svg>
         `; // Pause icon
+
+        // Fetch the current song title immediately
+        fetchCurrentSong(url).then(songTitle => {
+            const currentSongElement = document.getElementById('current-song');
+            currentSongElement.textContent = `Current Song: ${songTitle}`;
+            currentSongElement.style.display = 'block';
+        });
+
+        // Start fetching the current song title every 15 seconds
+        fetchSongInterval = setInterval(() => {
+            fetchCurrentSong(url).then(songTitle => {
+                const currentSongElement = document.getElementById('current-song');
+                currentSongElement.textContent = `Current Song: ${songTitle}`;
+                currentSongElement.style.display = 'block';
+            });
+        }, 15000); // 15000 milliseconds = 15 seconds
     });
 
     audio.addEventListener('pause', () => {
@@ -336,13 +355,8 @@ function playStation(url, shouldHighlight = true) {
                 <path fill="#000000" d="M8 5v14l11-7L8 5z"/>
             </svg>
         `; // Play icon
-    });
 
-    // Fetch and display the current song title
-    fetchCurrentSong(url).then(songTitle => {
-        const currentSongElement = document.getElementById('current-song');
-        currentSongElement.textContent = `Current Song: ${songTitle}`;
-        currentSongElement.style.display = 'block';
+        clearInterval(fetchSongInterval); // Clear the interval when paused
     });
 
     // Highlight the station if required
@@ -350,6 +364,7 @@ function playStation(url, shouldHighlight = true) {
         highlightPlayingStation(url);
     }
 }
+
 function highlightPlayingStation(url) {
     // Remove highlight from any previously playing station
     removeHighlightFromPlayingStation();
@@ -488,65 +503,52 @@ function highlightFavouritePlayingStation(stationElement) {
 async function fetchCurrentSong(url) {
     console.log(`Fetching current song from URL: ${url}`);
     try {
+        // Validate the URL
+        if (!isValidUrl(url)) {
+            return 'Unknown Song';
+        }
+
         // Use the CORS proxy to fetch the song metadata
         const proxyUrl = `https://synesthesia-cors-proxy.andre-espinho-work.workers.dev/?url=${encodeURIComponent(url)}`;
         
         const response = await fetch(proxyUrl, {
-            method: 'HEAD',
-            headers: {
-                'Icy-MetaData': '1',
-                'Access-Control-Expose-Headers': 'Icy-MetaInt'
-            }
+            method: 'GET',
         });
 
         if (!response.ok) {
             throw new Error(`Network response was not ok: ${response.statusText}`);
         }
 
-        const icyTitle = response.headers.get('icy-title');
-        if (icyTitle) {
-            return icyTitle;
-        }
+        // Read the entire response body as a Uint8Array
+        const arrayBuffer = await response.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
 
-        const reader = response.body.getReader();
-        const metaInt = parseInt(response.headers.get('icy-metaint'), 10);
+        // Decode the response body using ISO-8859-1
+        const decoder = new TextDecoder('iso-8859-1');
+        const responseBody = decoder.decode(uint8Array);
 
-        if (isNaN(metaInt)) {
-            console.warn('Metadata not available');
-            return 'Unknown Song';
-        }
+        // Search for the <DB_DALET_TITLE_NAME> tag in the response body
+        const titleStart = responseBody.indexOf('<DB_DALET_TITLE_NAME>') + '<DB_DALET_TITLE_NAME>'.length;
+        const titleEnd = responseBody.indexOf('</DB_DALET_TITLE_NAME>', titleStart);
 
-        let bytesRead = 0;
-        let audioData = new Uint8Array(metaInt);
-        let result;
-
-        while (bytesRead < metaInt) {
-            result = await reader.read();
-            if (result.done) break;
-            audioData.set(result.value, bytesRead);
-            bytesRead += result.value.length;
-        }
-
-        result = await reader.read();
-        if (result.done || result.value.length === 0) {
-            return 'Unknown Song';
-        }
-
-        const metaDataLength = result.value[0] * 16;
-        if (metaDataLength > 0) {
-            const metaDataBuffer = result.value.slice(1, metaDataLength + 1);
-            const metaData = new TextDecoder().decode(metaDataBuffer);
-
-            const titleStart = metaData.indexOf('<DB_DALET_TITLE_NAME>') + '<DB_DALET_TITLE_NAME>'.length;
-            const titleEnd = metaData.indexOf('</DB_DALET_TITLE_NAME>', titleStart);
-
-            if (titleStart > '<DB_DALET_TITLE_NAME>'.length && titleEnd > titleStart) {
-                return metaData.substring(titleStart, titleEnd);
-            }
+        if (titleStart > '<DB_DALET_TITLE_NAME>'.length && titleEnd > titleStart) {
+            return responseBody.substring(titleStart, titleEnd);
         }
     } catch (e) {
         console.error('Error fetching song metadata:', e);
+        return 'Unknown Song';
     }
 
     return 'Unknown Song';
+}
+
+// Helper function to validate URL
+function isValidUrl(string) {
+    try {
+        const url = new URL(string);
+        // Check if the URL contains "stream-icy"
+        return url.href.includes('stream-icy');
+    } catch (_) {
+        return false;  
+    }
 }
