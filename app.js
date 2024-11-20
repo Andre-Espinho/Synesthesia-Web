@@ -736,9 +736,9 @@ function addStationsToMap(countryCode, triggeringMarker) {
                         // Update the existing marker's icon without removing it
                         marker.setIcon(newIcon);
                     };
-                    img.onerror = function() {
+                    /*img.onerror = function() {
                         console.warn(`Failed to load favicon for ${station.name}, using default icon.`);
-                    };
+                    };*/
                     img.src = station.favicon;
                 }
             }
