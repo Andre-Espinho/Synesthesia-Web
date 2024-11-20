@@ -82,3 +82,38 @@ audio {
 #play-pause-button.pause {
     background-image: url('path/to/pause-icon.png');
 }
+
+
+/* Mobile styles */
+@media (max-width: 600px) {
+    button {
+        font-size: 20px;
+        padding: 15px;
+    }
+
+    #stations-list, #country-list {
+        padding: 0;
+        margin: 0;
+        list-style-type: none;
+    }
+
+    li {
+        padding: 10px;
+        border-bottom: 1px solid #ccc;
+    }
+
+    #audio-player {
+        width: 100%;
+    }
+
+    #volume-control, #play-pause-button {
+        width: 100%;
+        margin: 10px 0;
+    }
+}
+
+@media (min-width: 601px) {
+    #country-list li {
+        flex: 1 1 100%; /* Full width on larger screens */
+    }
+}
