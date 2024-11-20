@@ -699,11 +699,11 @@ function addStationsToMap(countryCode, triggeringMarker) {
     .then(stations => {
         stations.forEach(station => {
             if (station.geo_lat && station.geo_long) {
-                console.log(station.name 
+                //console.log(station.name 
                     + " , " + station.url
                     + " , " + station.favicon
-                    + " , " + station.tags);
-                console.log(station.geo_lat + " | " + station.geo_long);
+                    //+ " , " + station.tags);
+                //console.log(station.geo_lat + " | " + station.geo_long);
 
                 let lat = station.geo_lat;
                 let lng = station.geo_long;
