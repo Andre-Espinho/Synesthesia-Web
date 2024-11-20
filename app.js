@@ -190,7 +190,7 @@ function showRadioStations(countryCode) {
                     stationItem.appendChild(favoriteButton);
         
                     stationItem.addEventListener('click', () => {
-                        playStation(station.url);
+                        playStation(station.url, true, station.name);
                     });
         
                     stationsList.appendChild(stationItem);
@@ -535,13 +535,30 @@ async function fetchCurrentSong(url) {
         const decoder = new TextDecoder('iso-8859-1');
         const responseBody = decoder.decode(uint8Array);
 
+        console.log(responseBody)
+
+        // Search for the <DB_DALET_ARTIST_NAME> tag in the response body
+        const artistStart = responseBody.indexOf('<DB_DALET_ARTIST_NAME>') + '<DB_DALET_ARTIST_NAME>'.length;
+        const artistEnd = responseBody.indexOf('</DB_DALET_ARTIST_NAME>', artistStart);
+
         // Search for the <DB_DALET_TITLE_NAME> tag in the response body
         const titleStart = responseBody.indexOf('<DB_DALET_TITLE_NAME>') + '<DB_DALET_TITLE_NAME>'.length;
         const titleEnd = responseBody.indexOf('</DB_DALET_TITLE_NAME>', titleStart);
 
-        if (titleStart > '<DB_DALET_TITLE_NAME>'.length && titleEnd > titleStart) {
-            return responseBody.substring(titleStart, titleEnd);
+        let nowPlayingStr = "";
+        
+        if (artistStart > '<DB_DALET_ARTIST_NAME>'.length && artistEnd > artistStart) {
+            nowPlayingStr += responseBody.substring(artistStart, artistEnd) + " - ";
         }
+
+        if (titleStart > '<DB_DALET_TITLE_NAME>'.length && titleEnd > titleStart) {
+            nowPlayingStr += responseBody.substring(titleStart, titleEnd);
+        }
+        else{
+            nowPlayingStr += 'Unknown Song';
+        }
+
+        return nowPlayingStr;
     } catch (e) {
         //console.error('Error fetching song metadata:', e);
         return 'Unknown Song';
