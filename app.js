@@ -535,8 +535,6 @@ async function fetchCurrentSong(url) {
         const decoder = new TextDecoder('iso-8859-1');
         const responseBody = decoder.decode(uint8Array);
 
-        console.log(responseBody)
-
         // Search for the <DB_DALET_ARTIST_NAME> tag in the response body
         const artistStart = responseBody.indexOf('<DB_DALET_ARTIST_NAME>') + '<DB_DALET_ARTIST_NAME>'.length;
         const artistEnd = responseBody.indexOf('</DB_DALET_ARTIST_NAME>', artistStart);
