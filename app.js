@@ -38,7 +38,7 @@ function fetchCountries() {
 }
 
 function displayCountries(countries) {
-    displayFavoriteStations(); // Display favorite stations first
+    //displayFavoriteStations(); // Display favorite stations first
 
     const renderCountries = () => {
         const countryList = document.querySelector('#country-list') || document.createElement('ul');
@@ -118,15 +118,17 @@ function showRadioStations(countryCode) {
     const searchBar = document.getElementById('search');
     searchBar.placeholder = 'Search stations...';
 
-    const stationsList = document.createElement('ul');
+    const stationsList =  document.querySelector('#stations-list') || document.createElement('ul');
     stationsList.id = 'stations-list';
 
     const existingStationsList = document.getElementById('stations-list');
     if (existingStationsList) {
-        existingStationsList.remove();
+        existingStationsListL = '';
     }
 
-    document.body.appendChild(stationsList);
+    if (!document.querySelector('#stations-list')) {
+        document.body.appendChild(stationsList);
+    }
 
     downloadRadiobrowserStationsByCountry(countryCode)
         .then(stations => {
@@ -223,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
     `; // Default to pause icon
 
     // Add the volume slider and play/pause button to the page
-    const searchBar = document.getElementById('search');
+    const searchBar = document.getElementById('stationControlls');
     searchBar.parentNode.insertBefore(volumeControl, searchBar.nextSibling);
     searchBar.parentNode.insertBefore(playPauseButton, volumeControl.nextSibling);
 
@@ -478,7 +480,7 @@ function displayFavoriteStations() {
         favoriteButton.addEventListener('click', (event) => {
             event.stopPropagation(); // Prevent triggering station play
             toggleStationFavorite(station.url, station.name);
-            displayFavoriteStations(); // Re-render the list
+            //displayFavoriteStations(); // Re-render the list
         });
 
         listItem.appendChild(favoriteButton);
@@ -499,6 +501,7 @@ function displayFavoriteStations() {
         stationList.parentNode.insertBefore(separator, stationList.nextSibling);
     }
 }
+
 function highlightFavouritePlayingStation(stationElement) {
     // Remove highlight from any previously playing station
     //removeHighlightFromPlayingStation();
@@ -594,3 +597,151 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', adjustLayoutForMobile);
     adjustLayoutForMobile(); // Initial adjustment
 });
+
+
+function openTab(event, tabName) {
+        const tabContents = document.querySelectorAll('.tab-content');
+        const tabButtons = document.querySelectorAll('.tab-button');
+
+        // Hide all tab contents
+        tabContents.forEach(content => {
+            content.style.display = 'none';
+        });
+
+        // Remove active class from all tab buttons
+        tabButtons.forEach(button => {
+            button.classList.remove('active');
+        });
+
+        // Show the current tab content and add active class to the button
+        document.getElementById(tabName).style.display = 'block';
+        event.currentTarget.classList.add('active');
+
+        // If the map tab is opened, adjust the map size
+        if (tabName === 'Map') {
+            adjustMapSize();
+        }
+}
+
+function adjustMapSize() {
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 100);
+
+    // Fetch countries data and display on map
+    fetch('https://restcountries.com/v3.1/all')
+    .then(response => response.json())
+    .then(data => {
+        displayCountriesOnMap(data);
+    })
+    .catch(error => {
+        console.error('Error fetching countries:', error);
+    });
+}
+
+// Initialize the first tab as active
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelector('.tab-button').click();
+});
+
+// Initialize the map
+const map = L.map('map', {
+    center: [20, 0], // Centered at the equator
+    zoom: 2, // Initial zoom level
+    minZoom: 2, // Set the minimum zoom level to prevent zooming out too far
+    maxBounds: [
+        [-90, -180], // Southwest corner
+        [90, 180]    // Northeast corner
+    ],
+    maxBoundsViscosity: 1.0 // Ensures the map bounces back when panned outside the bounds
+});
+
+// Add a tile layer (OpenStreetMap tiles)
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19, // Maximum zoom-in level
+    attribution: '© OpenStreetMap'
+}).addTo(map);
+// Set to keep track of added countries by country code
+const loadedCountries = new Set();
+
+// Function to display countries on the map
+function displayCountriesOnMap(countries) {
+    countries.forEach(country => {
+        if (country.latlng && country.latlng.length === 2) {
+            const [lat, lng] = country.latlng;
+            const countryCode = country.cca2;
+
+            // Check if the country has already been loaded
+            if (!loadedCountries.has(countryCode)) {
+                const marker = L.marker([lat, lng])
+                    .addTo(map)
+                    .bindPopup(`<b>${country.name.common}</b><br>${country.flag}`);
+
+                // Store the country code in the loadedCountries set
+                loadedCountries.add(countryCode);
+
+                // Add an onclick event to the marker
+                marker.on('click', () => {
+                    addStationsToMap(countryCode, marker);
+                });
+            }
+        }
+    });
+}
+
+function addStationsToMap(countryCode, triggeringMarker) {
+    // Remove the triggering marker
+    if (triggeringMarker) {
+        map.removeLayer(triggeringMarker);
+    }
+
+    downloadRadiobrowserStationsByCountry(countryCode)
+    .then(stations => {
+        stations.forEach(station => {
+            if (station.geo_lat && station.geo_long) {
+                console.log(station.name 
+                    + " , " + station.url
+                    + " , " + station.favicon
+                    + " , " + station.tags);
+                console.log(station.geo_lat + " | " + station.geo_long);
+
+                let lat = station.geo_lat;
+                let lng = station.geo_long;
+
+                // Default icon options
+                let iconOptions = {
+                    iconUrl: 'portable-radio.png', // Default icon
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 32],
+                    popupAnchor: [0, -32]
+                };
+
+                // Create the marker with the default icon
+                const marker = L.marker([lat, lng], { icon: L.icon(iconOptions) })
+                    .addTo(map)
+                    .bindPopup(`<b>${station.name}</b><br>${station.tags}`);
+
+                marker.on('click', () => {
+                    playStation(station.url, false, station.name);
+                });
+
+                // Preload the favicon
+                if (station.favicon) {
+                    const img = new Image();
+                    img.onload = function() {
+                        // If the favicon loads successfully, update the icon
+                        iconOptions.iconUrl = station.favicon;
+                        const newIcon = L.icon(iconOptions);
+
+                        // Update the existing marker's icon without removing it
+                        marker.setIcon(newIcon);
+                    };
+                    img.onerror = function() {
+                        console.warn(`Failed to load favicon for ${station.name}, using default icon.`);
+                    };
+                    img.src = station.favicon;
+                }
+            }
+        });
+    });
+}

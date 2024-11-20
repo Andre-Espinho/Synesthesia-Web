@@ -117,3 +117,50 @@ audio {
         flex: 1 1 100%; /* Full width on larger screens */
     }
 }
+
+.tab-container {
+    display: flex;
+    justify-content: center; /* Center the tab buttons horizontally */
+    margin-bottom: 10px;
+    gap: 10px;
+    width: 100%; /* Ensure the container takes full width */
+}
+
+.tab-button {
+    cursor: pointer;
+    background-color: #1e1e1e;
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 16px !important;
+    transition: background-color 0.3s;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box;
+}
+
+.tab-button:hover {
+    background-color: #505050;
+}
+
+.tab-content {
+    display: none;
+    padding: 20px;
+    border-top: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.tab-button.active {
+    box-shadow: 0 0 10px #ff9800; /* Adjust the color and size as needed */
+    transition: box-shadow 0.3s ease-in-out; /* Smooth transition for the glow */
+}
+
+
+#map {
+    height: 80vh;
+    width: 100%;
+}
