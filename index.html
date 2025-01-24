@@ -4,38 +4,50 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Synesthesia Web</title>
-        <link rel="stylesheet" href="styles.css">
-        
+
         <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+        <link rel="stylesheet" href="css/grid.css">
+        <link rel="stylesheet" href="css/styles.css">
+        <link rel="stylesheet" href="css/sidebar.css">
+
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
     </head>
+    
     <body>
-        <div class="tab-container">
-            <h1>&nbsp;Synesthesia Web&nbsp;</h1>
-            <button class="tab-button" onclick="openTab(event, 'Tab1')">List</button>
-            <button class="tab-button" onclick="openTab(event, 'Map')">Map</button>
+        <div id="mySidebar" class="sidebar">
+            <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+            
+            <a href="#" class="sidebar-link" id="favourites" onclick="loadContent('html/favourites.html', 'favourites')">Home</a>
+            <a href="#" class="sidebar-link" id="places" onclick="loadContent('html/places.html', 'places')">Places</a>
+            <a href="#" class="sidebar-link" id="discover" onclick="loadContent('html/discover.html', 'discover')">Discover</a>
+        </div>
+
+        <div id="main">
+            <button class="openbtn" onclick="openNav()">☰</button>
+        </div>
+
+        <div id="contentView">
         </div>
         
-        <div id="stationControlls">
+        <!-- ========== Start Section ========== -->
+        <!-- <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script> -->
+        <!-- <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script> -->
+        <!-- ========== End Section ========== -->
 
-            <h5 id="current-song" style="display: none;">Current Song: ...</h5>
-        </div>
+        <script src="js/sidebar.js"></script>        
+        <script src="js/radio-browser-api.js"></script>
+        <script src="js/artifact-handler.js"></script>
 
-        <div id="Tab1" class="tab-content">
-            <input type="text" id="search" placeholder="Search countries..." oninput="filterCountries()">
+        <script src="js/grid-controls.js"></script>
+        <script src="js/svg-scripts.js"></script>
 
-            <data>
-                <ul id="country-list"></ul>
-                <ul id="stations-list"></ul>
-            </data>
-        </div>
+        <script src="js/station-controls.js"></script>
 
-        <div id="Map" class="tab-content" style="display:none;">
-            <div id="map"></div>
-        </div>
-
-        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-        <script src="radio-browser-api.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-        <script src="app.js"></script>
+        <script>
+            loadContent('html/favourites.html', 'favourites')
+        </script>
+        
     </body>
 </html>

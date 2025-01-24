@@ -1,0 +1,39 @@
+#PlacesView {
+    display: grid;
+    gap: 1vh;
+    text-align: center;
+}
+
+.grid-container {
+    display: grid;
+    /*background-color: #222222;*/
+    grid-template-columns: auto auto;
+    gap: 2vh;
+    padding: 2%;
+    font-weight: bold;
+    color: white; /* Ensure text is visible on dark background */
+}
+
+.grid-header {
+    font-size: 1.5em;
+    margin-bottom: 1vh;
+    cursor: pointer;
+    user-select: none;
+}
+.grid-button {
+    background-color: #222222;
+    font-weight: bold;
+    color: white;
+    border-radius: 5px;
+    border: #222222;
+    min-height: 3vh;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.grid-button:hover {
+    background-color: #444444;
+}
+
+.hidden {
+    display: none;
+}

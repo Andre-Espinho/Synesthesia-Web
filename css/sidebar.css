@@ -1,0 +1,50 @@
+.sidebar {
+    height: 100vh;
+    width: 0;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: #111;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 6vh; /* Adjusted for viewport height */
+}
+
+.sidebar a {
+    padding: 0.8vh 1.6vw; /* Adjusted for viewport units */
+    text-decoration: none;
+    font-size: 2.5vh; /* Adjusted for viewport height */
+    color: #818181;
+    display: block;
+    transition: 0.3s;
+    text-align: left;
+}
+
+.sidebar a:hover {
+    color: #f1f1f1;
+}
+
+.sidebar .closebtn {
+    position: absolute;
+    top: 0;
+    right: 2.5vw; /* Adjusted for viewport width */
+    font-size: 3.6vh; /* Adjusted for viewport height */
+    margin-left: 5vw; /* Adjusted for viewport width */
+}
+
+.openbtn {
+    font-size: 3vh; /* Adjusted for viewport height */
+    cursor: pointer;
+    background-color: #111;
+    color: white;
+    border: none;
+    position: absolute;
+    top: 1vh; /* Adjusted for viewport height */
+    left: 1vw; /* Adjusted for viewport width */
+}
+
+.active {
+    color: #f1f1f1 !important;
+    background-color: #575757;
+}
