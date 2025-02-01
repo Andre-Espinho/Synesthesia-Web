@@ -281,12 +281,20 @@ function playStation(url, shouldHighlight = true, name) {
         const barWidth = (canvas.width / bufferLength) * 2.5 / devicePixelRatio;
         let barHeight;
         let x = 0;
+
+        // Calculate the current time in quarters of a day past midnight
+        const now = new Date();
+        const hours = now.getHours();
+        const minutes = now.getMinutes();
+        const seconds = now.getSeconds();
+        const totalMinutes = hours * 60 + minutes + seconds / 60;
+        const quartersPastMidnight = Math.floor(totalMinutes / (24 * 60 / 4));
     
         for (let i = 0; i < bufferLength; i++) {
             barHeight = dataArray[i];
     
             // Calculate the hue for the rainbow effect
-            const hue = (i / bufferLength) * 360;
+            const hue = ((i / bufferLength) * 360 - 90 * quartersPastMidnight + 360) % 360;
             canvasCtx.fillStyle = 'hsla(' + hue + ', 100%, 50%, 0.7)'; // 0.7 for 70% transparency
             canvasCtx.fillRect(x, canvas.height / devicePixelRatio - barHeight / 2, barWidth, barHeight / 2);
     
