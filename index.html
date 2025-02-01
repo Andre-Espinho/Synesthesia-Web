@@ -5,10 +5,10 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Synesthesia Web</title>
 
-
         <link rel="stylesheet" href="css/grid.css">
         <link rel="stylesheet" href="css/styles.css">
         <link rel="stylesheet" href="css/sidebar.css">
+        <link rel="stylesheet" href="css/frequency-graph.css">
 
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
@@ -29,6 +29,9 @@
 
         <div id="contentView">
         </div>
+
+        <!-- Add this inside the station controls div -->
+        <canvas id="frequency-graph" width="100vh" height="200"></canvas>
 
         <script src="js/sidebar.js"></script>        
         <script src="js/radio-browser-api.js"></script>

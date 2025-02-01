@@ -165,6 +165,7 @@ function updateStationList(filteredStations) {
     });
 }
 
+
 function playStation(url, shouldHighlight = true, name) {
     // Remove existing audio element if it exists
     let existingAudio = document.getElementById('audio-player');
@@ -233,22 +234,6 @@ function playStation(url, shouldHighlight = true, name) {
                 <path fill="#000000" d="M6 19h4V5H6v14zM14 5v14h4V5h-4z"/>
             </svg>
         `; // Pause icon
-
-        // Fetch the current song title immediately
-        fetchCurrentSong(url).then(songTitle => {
-            const currentSongElement = document.getElementById('current-song');
-            currentSongElement.textContent = `${name} playing: ${songTitle}`;
-            currentSongElement.style.display = 'block';
-        });
-
-        // Start fetching the current song title every 15 seconds
-        fetchSongInterval = setInterval(() => {
-            fetchCurrentSong(url).then(songTitle => {
-                const currentSongElement = document.getElementById('current-song');
-                currentSongElement.textContent = `${name} playing: ${songTitle}`;
-                currentSongElement.style.display = 'block';
-            });
-        }, 15000); // 15000 milliseconds = 15 seconds
     });
 
     audio.addEventListener('pause', () => {
@@ -265,7 +250,53 @@ function playStation(url, shouldHighlight = true, name) {
     if (shouldHighlight) {
         highlightPlayingStation(url);
     }
+
+    // Web Audio API setup for frequency graph
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const analyser = audioContext.createAnalyser();
+    const source = audioContext.createMediaElementSource(audio);
+    source.connect(analyser);
+    analyser.connect(audioContext.destination);
+
+    analyser.fftSize = 256;
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    
+    const canvas = document.getElementById('frequency-graph');
+    const canvasCtx = canvas.getContext('2d');
+    
+    // Adjust canvas resolution for sharper visuals
+    const devicePixelRatio = window.devicePixelRatio || 1;
+    canvas.width = canvas.clientWidth * devicePixelRatio;
+    canvas.height = canvas.clientHeight * devicePixelRatio;
+    canvasCtx.scale(devicePixelRatio, devicePixelRatio);
+    
+    function draw() {
+        requestAnimationFrame(draw);
+    
+        analyser.getByteFrequencyData(dataArray);
+    
+        canvasCtx.clearRect(0, 0, canvas.width / devicePixelRatio, canvas.height / devicePixelRatio);
+    
+        const barWidth = (canvas.width / bufferLength) * 2.5 / devicePixelRatio;
+        let barHeight;
+        let x = 0;
+    
+        for (let i = 0; i < bufferLength; i++) {
+            barHeight = dataArray[i];
+    
+            // Calculate the hue for the rainbow effect
+            const hue = (i / bufferLength) * 360;
+            canvasCtx.fillStyle = 'hsla(' + hue + ', 100%, 50%, 0.7)'; // 0.7 for 70% transparency
+            canvasCtx.fillRect(x, canvas.height / devicePixelRatio - barHeight / 2, barWidth, barHeight / 2);
+    
+            x += barWidth + 1;
+        }
+    }
+    
+    draw();
 }
+
 
 function isStationFavorite(stationUrl) {
     const favorites = JSON.parse(localStorage.getItem('favoriteStations')) || [];

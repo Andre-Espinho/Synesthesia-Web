@@ -1,0 +1,9 @@
+#frequency-graph {
+    position: fixed;
+    bottom: 0px;
+    left: 0;
+    width: 100%;
+    height: 200px;
+    z-index: 1000;
+    background-color: #12121200;
+}
