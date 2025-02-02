@@ -261,23 +261,23 @@ function playStation(url, shouldHighlight = true, name) {
     analyser.fftSize = 256;
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
-    
+
     const canvas = document.getElementById('frequency-graph');
     const canvasCtx = canvas.getContext('2d');
-    
+
     // Adjust canvas resolution for sharper visuals
     const devicePixelRatio = window.devicePixelRatio || 1;
     canvas.width = canvas.clientWidth * devicePixelRatio;
     canvas.height = canvas.clientHeight * devicePixelRatio;
     canvasCtx.scale(devicePixelRatio, devicePixelRatio);
-    
+
     function draw() {
         requestAnimationFrame(draw);
-    
+
         analyser.getByteFrequencyData(dataArray);
-    
+
         canvasCtx.clearRect(0, 0, canvas.width / devicePixelRatio, canvas.height / devicePixelRatio);
-    
+
         const barWidth = (canvas.width / bufferLength) * 2.5 / devicePixelRatio;
         let barHeight;
         let x = 0;
@@ -289,19 +289,19 @@ function playStation(url, shouldHighlight = true, name) {
         const seconds = now.getSeconds();
         const totalMinutes = hours * 60 + minutes + seconds / 60;
         const quartersPastMidnight = Math.floor(totalMinutes / (24 * 60 / 4));
-    
+
         for (let i = 0; i < bufferLength; i++) {
             barHeight = dataArray[i];
-    
+
             // Calculate the hue for the rainbow effect
-            const hue = ((i / bufferLength) * 360 - 90 * quartersPastMidnight + 360) % 360;
+            const hue = ((i / bufferLength) * 360 + 90 * quartersPastMidnight) % 360;
             canvasCtx.fillStyle = 'hsla(' + hue + ', 100%, 50%, 0.7)'; // 0.7 for 70% transparency
             canvasCtx.fillRect(x, canvas.height / devicePixelRatio - barHeight / 2, barWidth, barHeight / 2);
-    
+
             x += barWidth + 1;
         }
     }
-    
+
     draw();
 }
 
