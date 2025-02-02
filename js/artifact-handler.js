@@ -26,6 +26,7 @@ function loadContent(url, viewId) {
                     break;
                 case 'favourites':
                     loadFavourites();
+                    setupStationControls();
                     break;
                 case 'discover':
                     discoverTooltip();
@@ -124,39 +125,6 @@ function loadFavourites(){
             favouriteStationsList.appendChild(stationItem);
         });
         favouriteStations.appendChild(favouriteStationsList);
-        
-
-        const playPauseButton = document.getElementById('play-pause-button');
-        playPauseButton.addEventListener('click', () => {
-        const audio = document.getElementById('audio-player');
-            if (audio) {
-                if (audio.paused) {
-                    let existingAudio = document.getElementById('audio-player');
-                    if (existingAudio) {
-                        existingAudio.pause();
-                        existingAudio.src = '';
-                        existingAudio.load();
-                        existingAudio.parentNode.removeChild(existingAudio);
-                        removeHighlightFromPlayingStation();
-                    }
-                    playStation(localStorage.getItem('audio-src'));
-                    
-                    playPauseButton.innerHTML = `
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path fill="#000000" d="M6 19h4V5H6v14zM14 5v14h4V5h-4z"/>
-                        </svg>
-                    `; // Pause icon
-                } else {
-                    //let existingAudio = document.getElementById('audio-player');
-                    audio.pause()
-                    playPauseButton.innerHTML = `
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path fill="#000000" d="M8 5v14l11-7L8 5z"/>
-                        </svg>
-                    `; // Play icon
-                }
-            }
-        });
     }
     else{
         const favouriteStationControlls = document.getElementById('contentView');

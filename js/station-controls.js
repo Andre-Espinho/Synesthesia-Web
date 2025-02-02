@@ -1,6 +1,5 @@
-
-function renderStations(stations) {
-
+function setupStationControls() {
+    
     // Volume Controll
     const volumeControl = document.getElementById('volume-control');
     // Retrieve the saved volume level from localStorage
@@ -21,6 +20,7 @@ function renderStations(stations) {
         const audio = document.getElementById('audio-player');
         if (audio) {
             if (audio.paused) {
+                console.log('audio.paused:', audio.paused);
                 let existingAudio = document.getElementById('audio-player');
                 if (existingAudio) {
                     existingAudio.pause();
@@ -37,6 +37,7 @@ function renderStations(stations) {
                     </svg>
                 `; // Pause icon
             } else {
+                console.log('audio.paused:', audio.paused);
                 //let existingAudio = document.getElementById('audio-player');
                 audio.pause()
                 playPauseButton.innerHTML = `
@@ -47,7 +48,13 @@ function renderStations(stations) {
             }
         }
     });
+}
 
+
+function renderStations(stations) {
+
+    setupStationControls();
+    
     const stationsList =  document.getElementById('stations-list');
     stationsList.innerHTML = ''; // Clear previous list
 
@@ -175,7 +182,7 @@ function playStation(url, shouldHighlight = true, name) {
         existingAudio.load();
         existingAudio.parentNode.removeChild(existingAudio);
         removeHighlightFromPlayingStation();
-        clearInterval(fetchSongInterval); // Clear the interval if it exists
+        //clearInterval(fetchSongInterval); // Clear the interval if it exists
     }
 
     // Create a new audio element
@@ -243,7 +250,7 @@ function playStation(url, shouldHighlight = true, name) {
             </svg>
         `; // Play icon
 
-        clearInterval(fetchSongInterval); // Clear the interval when paused
+        //clearInterval(fetchSongInterval); // Clear the interval when paused
     });
 
     // Highlight the station if required
