@@ -128,7 +128,8 @@ function loadFavourites(){
     }
     else{
         const favouriteStationControlls = document.getElementById('contentView');
-        favouriteStationControlls.innerHTML = "Your favourite stations will show here."
+        favouriteStationControlls.innerHTML = "<h1>Hey, thanks for checking out the app.</h1>";
+        favouriteStationControlls.innerHTML += "<p>Your favourite stations will show here, meanwhile you can find some stations in the discover section.</p>";
     }
 }
 
