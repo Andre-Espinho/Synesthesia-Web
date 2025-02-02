@@ -42,10 +42,7 @@ function loadContent(url, viewId) {
                     break;
             }
             
-            const savedAudioSrc = localStorage.getItem('audio-src');
-            if (savedAudioSrc) {
-                playStation(savedAudioSrc, false);
-            }
+            
         })
         .catch(error => console.error('Error loading content:', error));
 }
