@@ -19,7 +19,7 @@ function fetchCountryByName(name) {
             if (data && data.length > 0) {
                 const country = data[0];
                 
-                downloadRadiobrowserStationsByCountry(country.cca2)
+                downloadRadiobrowserStationsByCountry((country.tld[0]+"").replace('.',''))
                 .then(stations => {
                     fetch('html/stations.html')
                     .then(response => response.text())
@@ -31,7 +31,7 @@ function fetchCountryByName(name) {
                 }).catch(error => {
                     console.log(error)
                 })
-                // console.log('Country id:', country);
+                //console.log('Country id:', country);
                 // You can access country.id or other properties here
             } else {
                 console.error('Country not found');

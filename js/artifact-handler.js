@@ -58,7 +58,6 @@ const wheelHandler = function(event) {
     }
 };
 
-
 function fetchCountriesForPlaces() {
     fetch('https://restcountries.com/v3.1/all')
         .then(response => response.json())
@@ -168,26 +167,63 @@ function loadFavourites(){
     }
 }
 
+let tooltipList = [];
+
 function discoverTooltip(){
     const tooltip = document.getElementById('tooltip');
     const svgPaths = document.querySelectorAll('svg path');
 
-    svgPaths.forEach(path => {
-        path.addEventListener('mouseover', (event) => {
-            const className = path.getAttribute('class');
-            const name = path.getAttribute('name');
-            tooltip.textContent = className || name;
-            tooltip.style.display = 'block';
-        });
+    downloadRadiobrowserNumberStationsPercountry()
+    .then(result => {
 
-        path.addEventListener('mousemove', (event) => {
-            tooltip.style.left = event.pageX + 10 + 'px';
-            tooltip.style.top = event.pageY + 10 + 'px';
-        });
+        svgPaths.forEach(path => {
+            path.addEventListener('mouseover', (event) => {
+                const className = path.getAttribute('class');
+                const name = path.getAttribute('name');
+                
+                countryName = className || name;
+                
+                if(tooltipList.find(element => element.name == countryName) == undefined){
 
-        path.addEventListener('mouseout', () => {
-            tooltip.style.display = 'none';
+                    tooltip.textContent = countryName;
+
+                    fetch(`https://restcountries.com/v3.1/name/${countryName}`).then(response => response.json()).then(data => {
+                        if (data && data.length > 0) {
+                            const country = data[0];
+                            
+                            let stations = result.find(location => location.iso_3166_1 === (country.tld[0]+"").replace('.','').toLocaleUpperCase());
+                            if(stations == undefined){
+                                stations = 0;
+                            }else{
+                                stations =  stations.stationcount;
+                            }
+
+                            tooltipList.push({name: countryName, stations: stations});
+                            
+                            tooltip.textContent += ' Stations: ' + stations;
+                            tooltip.style.display = 'block';
+                        } else {
+                            console.error('Country not found');
+                        }
+                    });
+                }else{
+                    let stations = tooltipList.find(element => element.name == countryName).stations;
+                    tooltip.textContent = countryName + ' Stations: ' + stations;
+                    tooltip.style.display = 'block';
+                }
+            });
+
+            path.addEventListener('mousemove', (event) => {
+                tooltip.style.left = event.pageX + 10 + 'px';
+                tooltip.style.top = event.pageY + 10 + 'px';
+            });
+
+            path.addEventListener('mouseout', () => {
+                tooltip.style.display = 'none';
+            });
         });
+    }).catch(error => {
+        console.error(error);
     });
 }
 
@@ -248,7 +284,7 @@ function setupSvgDragging() {
     function handleClick(e) {
         // Your onclick logic here
         //console.log('SVG clicked at', e.clientX, e.clientY);
-        countryName = document.getElementById("tooltip").innerHTML.trim();
+        countryName = document.getElementById("tooltip").innerHTML.split(" Stations")[0].trim();
         window.removeEventListener('wheel', wheelHandler);
         if(countryName!=""){
             fetchCountryByName(countryName);

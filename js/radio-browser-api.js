@@ -81,6 +81,10 @@ function downloadRadiobrowserStats() {
     return downloadRadiobrowser('/json/stats', null);
 }
 
+function downloadRadiobrowserNumberStationsPercountry() {
+    return downloadRadiobrowser('/json/countries', null);
+}
+
 function downloadRadiobrowserStationsByCountry(countryCode) {
     return downloadRadiobrowser(`/json/stations/bycountrycodeexact/${countryCode}`, null);
 }
