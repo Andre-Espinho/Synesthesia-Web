@@ -142,6 +142,12 @@ function discoverTooltip(){
     downloadRadiobrowserNumberStationsPercountry()
     .then(result => {
 
+        /*
+        result.forEach(element => {
+            console.log(element);
+        });
+        */
+        
         svgPaths.forEach(path => {
             path.addEventListener('mouseover', (event) => {
                 const className = path.getAttribute('class');
@@ -153,15 +159,19 @@ function discoverTooltip(){
 
                     tooltip.textContent = countryName;
 
-                    fetch(`https://restcountries.com/v3.1/name/${countryName}`).then(response => response.json()).then(data => {
+                    fetch(`https://restcountries.com/v3.1/name/${countryName}?fullText=true`).then(response => response.json()).then(data => {
                         if (data && data.length > 0) {
                             const country = data[0];
                             
-                            let stations = result.find(location => location.iso_3166_1 === (country.tld[0]+"").replace('.','').toLocaleUpperCase());
-                            if(stations == undefined){
+                            let stations = 0;
+                            let stationsByTld = result.find(location => location.iso_3166_1 === (country.tld[0]+"").replace('.','').toLocaleUpperCase());
+                            let stationsByCca2 = result.find(location => location.iso_3166_1 === country.cca2.toLocaleUpperCase());
+                            if(stationsByTld == undefined && stationsByCca2 == undefined){
                                 stations = 0;
+                            }else if(stationsByTld != undefined){
+                                stations = stationsByTld.stationcount;
                             }else{
-                                stations =  stations.stationcount;
+                                stations = stationsByCca2.stationcount;
                             }
 
                             tooltipList.push({name: countryName, stations: stations});

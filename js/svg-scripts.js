@@ -13,7 +13,7 @@ function handleClick(event) {
 
 
 function fetchCountryByName(name) {
-    fetch(`https://restcountries.com/v3.1/name/${name}`)
+    fetch(`https://restcountries.com/v3.1/name/${name}?fullText=true`)
         .then(response => response.json())
         .then(data => {
             if (data && data.length > 0) {
@@ -21,13 +21,26 @@ function fetchCountryByName(name) {
                 
                 downloadRadiobrowserStationsByCountry((country.tld[0]+"").replace('.',''))
                 .then(stations => {
-                    fetch('html/stations.html')
-                    .then(response => response.text())
-                    .then(data => {
-                        document.getElementById('contentView').innerHTML = data;
-                        closeNav();
-                        renderStations(stations);
-                    });
+                    if(stations.length == 0){
+                        downloadRadiobrowserStationsByCountry(country.cca2+"")
+                        .then(stations => {
+                            fetch('html/stations.html')
+                            .then(response => response.text())
+                            .then(data => {
+                                document.getElementById('contentView').innerHTML = data;
+                                closeNav();
+                                renderStations(stations);
+                            });
+                        });
+                    }else{
+                        fetch('html/stations.html')
+                        .then(response => response.text())
+                        .then(data => {
+                            document.getElementById('contentView').innerHTML = data;
+                            closeNav();
+                            renderStations(stations);
+                        });
+                    }
                 }).catch(error => {
                     console.log(error)
                 })
