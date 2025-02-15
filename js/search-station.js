@@ -32,6 +32,9 @@ var queryDataStorage;
 
 async function queryEndpoint() {
     try {
+        stationContent = document.getElementById('station-content');
+        stationContent.innerHTML = '<div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>';
+
         query = document.getElementById('search').value;
         const queryUrl = `https://andreespinho.pythonanywhere.com/search?term=${encodeURIComponent(query)}`;
         
@@ -57,11 +60,12 @@ async function queryEndpoint() {
             });
             
             queryDataStorage = { ...data, stations: uniqueStations };
-            console.log(queryDataStorage.stations);
+
+            stationContent.innerHTML = '<ul id="stations-list"></ul>';
+
             setupStationControls();
             updateStationList(queryDataStorage.stations.slice(0, 10));
         }
-
     } catch (e) {
         console.error('Error processing query result:', e);
     }

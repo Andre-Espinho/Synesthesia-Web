@@ -39,6 +39,9 @@ function loadContent(url, viewId) {
 
                     window.addEventListener('wheel', wheelHandler);
                     break;
+                case 'find-radios':
+                    setupStationControls();
+                    break;
             
                 default:
                     break;
