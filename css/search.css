@@ -3,8 +3,6 @@
 
     margin: 0px;
     padding: 0px;
-    width: 90vw;
-    height: 90vh;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -18,17 +16,15 @@
 }
 
 .input-search{
-    height: 50px;
-    width: 50px;
+    height: 3vh;
+    width: 50vw;
     border-style: none;
-    padding: 10px;
     font-size: 18px;
     letter-spacing: 2px;
     outline: none;
     border-radius: 25px;
     transition: all .5s ease-in-out;
     background-color: #22a6b3;
-    padding-right: 40px;
     color:#fff;
 }
 
@@ -56,7 +52,7 @@
 }
 
 .btn-search:focus ~ .input-search{
-    width: 300px;
+    width: 50vw;
     border-radius: 0px;
     background-color: transparent;
     border-bottom:1px solid rgba(255,255,255,.5);
@@ -64,7 +60,7 @@
 }
 
 .input-search:focus{
-    width: 300px;
+    width: 50vw;
     border-radius: 0px;
     background-color: transparent;
     border-bottom:1px solid rgba(255,255,255,.5);
