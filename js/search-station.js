@@ -33,7 +33,7 @@ var queryDataStorage;
 async function queryEndpoint() {
     try {
         query = document.getElementById('search').value;
-        const queryUrl = `http://andreespinho.pythonanywhere.com/search?term=${encodeURIComponent(query)}`;
+        const queryUrl = `https://andreespinho.pythonanywhere.com/search?term=${encodeURIComponent(query)}`;
         
         const response = await fetch(queryUrl, {
             method: 'GET',
