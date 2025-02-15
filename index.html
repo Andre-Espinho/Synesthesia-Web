@@ -16,9 +16,9 @@
 <body>
     <div id="mySidebar" class="sidebar">
         <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
-        <a href="#" class="sidebar-link" id="favourites" onclick="loadContent('html/favourites.html', 'favourites')">Home</a>
+        <a href="#" class="sidebar-link" id="favourites" onclick="loadContent('html/favourites.html', 'favourites')">Favourites</a>
         <a href="#" class="sidebar-link" id="discover" onclick="loadContent('html/discover.html', 'discover')">The World</a>
-        <a href="#" class="sidebar-link" id="Lookup" onclick="loadContent('html/search.html', 'search')">Lookup Radios</a>
+        <a href="#" class="sidebar-link" id="find-radios" onclick="loadContent('html/search.html', 'find-radios')">Find Radios</a>
         <!-- <a href="#" class="sidebar-link" id="places" onclick="loadContent('html/places.html', 'places')">Our Suggestions</a>-->
     </div>
 
@@ -40,7 +40,11 @@
     <script src="js/station-controls.js"></script>
     <script src="js/search-station.js"></script>
     <script>
-        loadContent('html/favourites.html', 'favourites');
+        if(!localStorage.getItem('favoriteStations')){
+            loadContent('html/search.html', 'find-radios');
+        }else{
+            loadContent('html/favourites.html', 'favourites');
+        }
     </script>
 </body>
 </html>

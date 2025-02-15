@@ -13,6 +13,7 @@ function loadContent(url, viewId) {
                 });
             });
 
+            console.log(viewId)
             document.getElementById(viewId).classList.add('active')
 
             document.getElementById('contentView').innerHTML = data;
