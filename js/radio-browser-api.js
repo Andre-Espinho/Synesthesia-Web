@@ -1,15 +1,18 @@
-function get_radiobrowser_base_urls() {
-    return new Promise((resolve, reject)=>{
-        var request = new XMLHttpRequest()
+function getRadiobrowserBaseUrls() {
+    return new Promise((resolve, reject) => {
+        const request = new XMLHttpRequest();
         request.open('GET', 'https://all.api.radio-browser.info/json/servers', true);
         request.onload = function() {
-            if (request.status >= 200 && request.status < 300){
-                var items = JSON.parse(request.responseText).map(x=>"https://" + x.name);
+            if (request.status >= 200 && request.status < 300) {
+                const items = JSON.parse(request.responseText).map(x => "https://" + x.name);
                 resolve(items);
-            }else{
-                reject(request.statusText);
+            } else {
+                fallbackServers(resolve);
             }
-        }
+        };
+        request.onerror = function() {
+            fallbackServers(resolve);
+        };
         request.send();
     });
 }
@@ -20,8 +23,8 @@ function fallbackServers(resolve) {
         "https://de1.api.radio-browser.info",
         "https://at1.api.radio-browser.info"
     ];
-    //console.warn('Using fallback servers:', fallback);
-    return fallback;
+    console.warn('Using fallback servers:', fallback);
+    resolve(fallback);
 }
 
 function downloadUri(uri, param) {
@@ -47,38 +50,44 @@ function downloadUri(uri, param) {
     });
 }
 
-
-function downloadRadiobrowser(path, param) {
-    
-    if (window.location.protocol === 'https:') {
-        servers = fallbackServers();
-        return tryDownload(servers, path, param);
-    } else if (window.location.protocol === 'http:') {
-        return get_radiobrowser_base_urls().then(servers => {
-            console.log(servers)
-            return tryDownload(servers, path, param);
-        });
-    }
+function get_radiobrowser_base_urls() {
+    return new Promise((resolve, reject)=>{
+        var request = new XMLHttpRequest()
+        // If you need https, you have to use fixed servers, at best a list for this request
+        request.open('GET', 'http://all.api.radio-browser.info/json/servers', true);
+        request.onload = function() {
+            if (request.status >= 200 && request.status < 300){
+                var items = JSON.parse(request.responseText).map(x=>"https://" + x.name);
+                resolve(items);
+            }else{
+                reject(request.statusText);
+            }
+        }
+        request.send();
+    });
 }
 
-function tryDownload(servers, path, param) {
+async function downloadRadiobrowser(path, param) {
+    const servers = await getRadiobrowserBaseUrls   ();
     let i = 0;
-    if (i >= servers.length) {
-        return Promise.reject('All servers failed');
+    function tryDownload() {
+        if (i >= servers.length) {
+            return Promise.reject('All servers failed');
+        }
+
+        const serverBase = servers[i];
+        const uri = serverBase + path;
+        //console.log('Random server:', serverBase, 'Try:', i);
+        return downloadUri(uri, param)
+            .then(data => JSON.parse(data))
+            .catch(err => {
+                console.error('Unable to download from API URL:', uri, err);
+                i++;
+                return tryDownload();
+            });
     }
-
-    const serverBase = servers[i];
-    const uri = serverBase + path;
-    //console.log('Random server:', serverBase, 'Try:', i);
-    return downloadUri(uri, param)
-        .then(data => JSON.parse(data))
-        .catch(err => {
-            console.error('Unable to download from API URL:', uri, err);
-            i++;
-            return tryDownload();
-        });
+    return tryDownload();
 }
-
 
 
 function downloadRadiobrowserStats() {
