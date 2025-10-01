@@ -50,9 +50,25 @@ function downloadUri(uri, param) {
     });
 }
 
+function get_radiobrowser_base_urls() {
+    return new Promise((resolve, reject)=>{
+        var request = new XMLHttpRequest()
+        // If you need https, you have to use fixed servers, at best a list for this request
+        request.open('GET', 'http://all.api.radio-browser.info/json/servers', true);
+        request.onload = function() {
+            if (request.status >= 200 && request.status < 300){
+                var items = JSON.parse(request.responseText).map(x=>"https://" + x.name);
+                resolve(items);
+            }else{
+                reject(request.statusText);
+            }
+        }
+        request.send();
+    });
+}
+
 function downloadRadiobrowser(path, param) {
-    return getRadiobrowserBaseUrls().then(servers => {
-        servers.sort(() => Math.random() - 0.5); // Shuffle servers
+    return get_radiobrowser_base_urls().then(servers => {
         let i = 0;
 
         function tryDownload() {
@@ -76,6 +92,7 @@ function downloadRadiobrowser(path, param) {
         return tryDownload();
     });
 }
+
 
 function downloadRadiobrowserStats() {
     return downloadRadiobrowser('/json/stats', null);
