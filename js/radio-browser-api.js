@@ -1,18 +1,15 @@
-function getRadiobrowserBaseUrls() {
-    return new Promise((resolve, reject) => {
-        const request = new XMLHttpRequest();
+function get_radiobrowser_base_urls() {
+    return new Promise((resolve, reject)=>{
+        var request = new XMLHttpRequest()
         request.open('GET', 'https://all.api.radio-browser.info/json/servers', true);
         request.onload = function() {
-            if (request.status >= 200 && request.status < 300) {
-                const items = JSON.parse(request.responseText).map(x => "https://" + x.name);
+            if (request.status >= 200 && request.status < 300){
+                var items = JSON.parse(request.responseText).map(x=>"https://" + x.name);
                 resolve(items);
-            } else {
-                fallbackServers(resolve);
+            }else{
+                reject(request.statusText);
             }
-        };
-        request.onerror = function() {
-            fallbackServers(resolve);
-        };
+        }
         request.send();
     });
 }
@@ -23,7 +20,7 @@ function fallbackServers(resolve) {
         "https://de1.api.radio-browser.info",
         "https://at1.api.radio-browser.info"
     ];
-    console.warn('Using fallback servers:', fallback);
+    //console.warn('Using fallback servers:', fallback);
     return fallback;
 }
 
@@ -50,36 +47,21 @@ function downloadUri(uri, param) {
     });
 }
 
-function get_radiobrowser_base_urls() {
-    return new Promise((resolve, reject)=>{
-        var request = new XMLHttpRequest()
-        request.open('GET', 'https://all.api.radio-browser.info/json/servers', true);
-        request.onload = function() {
-            if (request.status >= 200 && request.status < 300){
-                var items = JSON.parse(request.responseText).map(x=>"https://" + x.name);
-                resolve(items);
-            }else{
-                reject(request.statusText);
-            }
-        }
-        request.send();
-    });
-}
 
 function downloadRadiobrowser(path, param) {
     
     if (window.location.protocol === 'https:') {
         servers = fallbackServers();
-        return tryDownload(servers);
+        return tryDownload(servers, path, param);
     } else if (window.location.protocol === 'http:') {
         return get_radiobrowser_base_urls().then(servers => {
             console.log(servers)
-            return tryDownload(servers);
+            return tryDownload(servers, path, param);
         });
     }
 }
 
-function tryDownload(servers) {
+function tryDownload(servers, path, param) {
     let i = 0;
     if (i >= servers.length) {
         return Promise.reject('All servers failed');
@@ -88,7 +70,6 @@ function tryDownload(servers) {
     const serverBase = servers[i];
     const uri = serverBase + path;
     //console.log('Random server:', serverBase, 'Try:', i);
-
     return downloadUri(uri, param)
         .then(data => JSON.parse(data))
         .catch(err => {
