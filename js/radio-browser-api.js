@@ -24,7 +24,7 @@ function fallbackServers(resolve) {
         "https://at1.api.radio-browser.info"
     ];
     console.warn('Using fallback servers:', fallback);
-    resolve(fallback);
+    return fallback;
 }
 
 function downloadUri(uri, param) {
