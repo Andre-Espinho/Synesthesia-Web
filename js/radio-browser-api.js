@@ -51,51 +51,53 @@ function downloadUri(uri, param) {
 }
 
 function get_radiobrowser_base_urls() {
-    if (window.location.protocol === 'https:') {
-        return fallbackServers();
-    } else if (window.location.protocol === 'http:') {
-        return new Promise((resolve, reject)=>{
-            var request = new XMLHttpRequest()
-            request.open('GET', 'https://all.api.radio-browser.info/json/servers', true);
-            request.onload = function() {
-                if (request.status >= 200 && request.status < 300){
-                    var items = JSON.parse(request.responseText).map(x=>"https://" + x.name);
-                    resolve(items);
-                }else{
-                    reject(request.statusText);
-                }
+    return new Promise((resolve, reject)=>{
+        var request = new XMLHttpRequest()
+        request.open('GET', 'https://all.api.radio-browser.info/json/servers', true);
+        request.onload = function() {
+            if (request.status >= 200 && request.status < 300){
+                var items = JSON.parse(request.responseText).map(x=>"https://" + x.name);
+                resolve(items);
+            }else{
+                reject(request.statusText);
             }
-            request.send();
-        });
-    }
-    
+        }
+        request.send();
+    });
 }
 
 function downloadRadiobrowser(path, param) {
-    return get_radiobrowser_base_urls().then(servers => {
-        let i = 0;
-
-        function tryDownload() {
-            if (i >= servers.length) {
-                return Promise.reject('All servers failed');
-            }
-
-            const serverBase = servers[i];
-            const uri = serverBase + path;
-            //console.log('Random server:', serverBase, 'Try:', i);
-
-            return downloadUri(uri, param)
-                .then(data => JSON.parse(data))
-                .catch(err => {
-                    console.error('Unable to download from API URL:', uri, err);
-                    i++;
-                    return tryDownload();
-                });
-        }
-
-        return tryDownload();
-    });
+    
+    if (window.location.protocol === 'https:') {
+        servers = fallbackServers();
+        return tryDownload(servers);
+    } else if (window.location.protocol === 'http:') {
+        return get_radiobrowser_base_urls().then(servers => {
+            console.log(servers)
+            return tryDownload(servers);
+        });
+    }
 }
+
+function tryDownload(servers) {
+    let i = 0;
+    if (i >= servers.length) {
+        return Promise.reject('All servers failed');
+    }
+
+    const serverBase = servers[i];
+    const uri = serverBase + path;
+    //console.log('Random server:', serverBase, 'Try:', i);
+
+    return downloadUri(uri, param)
+        .then(data => JSON.parse(data))
+        .catch(err => {
+            console.error('Unable to download from API URL:', uri, err);
+            i++;
+            return tryDownload();
+        });
+}
+
 
 
 function downloadRadiobrowserStats() {
